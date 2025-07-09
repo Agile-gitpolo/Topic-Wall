@@ -1,0 +1,2 @@
+# .cursorignore
+# 这里不写 .env，方便 Cursor 重新加载工作区时能检测到环境变量文件
