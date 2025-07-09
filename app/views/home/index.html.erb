@@ -1,0 +1,416 @@
+<div id="topic-wall-root"></div>
+<!-- React & ReactDOM CDN -->
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Babel CDN -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- Swiper.js CDN -->
+<link rel="stylesheet" href="https://unpkg.com/swiper@9/swiper-bundle.min.css" />
+<script src="https://unpkg.com/swiper@9/swiper-bundle.min.js"></script>
+<!-- Framer Motion CDN -->
+<script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
+<!-- Anime.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Literata:wght@700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<style>
+  body {
+    background: url('/topicwall-bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+  }
+  .glass {
+    background: rgba(255,255,255,0.7);
+    box-shadow: 0 8px 32px 0 rgba(31,38,135,0.10);
+    backdrop-filter: blur(12px);
+    border-radius: 2rem;
+    border: 1.5px solid rgba(255,255,255,0.18);
+  }
+  # .bg-animated {
+  #   position: fixed; inset: 0; z-index: -10;
+  #   background: linear-gradient(120deg, #f9a8d4 0%, #a78bfa 50%, #60a5fa 100%);
+  #   background-size: 200% 200%;
+  #   animation: gradient-move 12s ease-in-out infinite;
+  # }
+  # @keyframes gradient-move {
+  #   0% { background-position: 0% 50%; }
+  #   50% { background-position: 100% 50%; }
+  #   100% { background-position: 0% 50%; }
+  # }
+  @keyframes slideFadeIn {
+    from { opacity: 0; transform: translateY(64px) scale(0.96); }
+    60%  { opacity: 0.7; transform: translateY(-8px) scale(1.03);}
+    to   { opacity: 1; transform: translateY(0) scale(1);}
+  }
+  @keyframes refreshPulse {
+    0% { opacity: 0.8; transform: scale(0.95) rotate(-1deg); }
+    50% { opacity: 1; transform: scale(1.02) rotate(0deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
+  .animate-slideFadeIn {
+    animation: slideFadeIn 1.3s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  .animate-refreshPulse {
+    animation: refreshPulse 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px);}
+    to { opacity: 1; transform: none;}
+  }
+  .animate-fadeIn { animation: fadeIn 0.8s cubic-bezier(0.4,0,0.2,1) both; }
+  .literature-font {
+    font-family: 'Literata', 'Playfair Display', serif;
+    letter-spacing: 0.02em;
+  }
+</style>
+<script>
+  setTimeout(() => {
+    console.log('window.framerMotion:', window.framerMotion);
+    console.log('window.framerMotion?.motion:', window.framerMotion?.motion);
+    console.log('window.framerMotion?.default:', window.framerMotion?.default);
+  }, 1000);
+</script>
+<script type="text/babel">
+
+function App() {
+  const [page, setPage] = React.useState('wall');
+  const [topics, setTopics] = React.useState([]);
+  const [history, setHistory] = React.useState(() => JSON.parse(localStorage.getItem('topicwall_history') || '[]'));
+  const [currentTopicId, setCurrentTopicId] = React.useState(null);
+  const [mode, setMode] = React.useState('best');
+
+  // 累加话题
+  const addTopic = topic => setTopics(prev => prev.some(t => t.id === topic.id) ? prev : [...prev, topic]);
+  // 历史
+  const addHistory = kw => {
+    const newHis = [kw, ...history.filter(h => h !== kw)].slice(0, 10);
+    setHistory(newHis);
+    localStorage.setItem('topicwall_history', JSON.stringify(newHis));
+  };
+  // 删除历史
+  const handleDeleteHistory = kw => {
+    const newHis = history.filter(h => h !== kw);
+    setHistory(newHis);
+    localStorage.setItem('topicwall_history', JSON.stringify(newHis));
+  };
+
+  return (
+    <>
+      # <div className="bg-animated"></div>
+      <div className="transition-opacity duration-500" style={{ opacity: page === 'wall' ? 1 : 0 }}>
+        {page === 'wall' && (
+          <TopicWall
+            topics={topics}
+            addTopic={addTopic}
+            history={history}
+            addHistory={addHistory}
+            onDeleteHistory={handleDeleteHistory}
+            onSelectTopic={id => { setCurrentTopicId(id); setPage('posts'); }}
+            mode={mode}
+            setMode={setMode}
+          />
+        )}
+      </div>
+      {page === 'posts' && (
+        <PostListPage topicId={currentTopicId} onBack={() => setPage('wall')} mode={mode} />
+      )}
+      <footer className="absolute bottom-0 w-full text-center text-xs text-gray-400 py-2 z-10 select-none">© 2025 TopicWall Created by Jacob Liu. All rights reserved. </footer>
+    </>
+  );
+}
+
+function TopicWall({ topics, addTopic, history, addHistory, onDeleteHistory, onSelectTopic, mode, setMode }) {
+  const [search, setSearch] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+
+  // 搜索话题
+  const handleSearch = async (kw) => {
+    const keyword = typeof kw === 'string' ? kw : search;
+    if (!keyword.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/topics/search?keyword=${encodeURIComponent(keyword)}&mode=${mode}`);
+      const data = await res.json();
+      const topicArr = Object.values(data.results || {}).map(item => item.topic);
+      topicArr.forEach(topic => addTopic(topic));
+      addHistory(keyword);
+    } catch (e) {
+      alert('搜索失败');
+    }
+    setLoading(false);
+  };
+
+  // Masonry 分栏
+  const [colCount, setColCount] = React.useState(getColCount());
+  function getColCount() {
+    if (typeof window === 'undefined') return 1;
+    if (window.innerWidth < 640) return 1;
+    if (window.innerWidth < 1024) return 2;
+    if (window.innerWidth < 1536) return 3;
+    return 4;
+  }
+  React.useEffect(() => {
+    const onResize = () => setColCount(getColCount());
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const columns = React.useMemo(() => {
+    const cols = Array.from({ length: colCount }, () => []);
+    topics.forEach((topic, i) => {
+      cols[i % colCount].push(topic);
+    });
+    return cols;
+  }, [topics, colCount]);
+
+  return (
+    <div className="relative z-10 max-w-7xl mx-auto py-16 px-2">
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+        onSearch={handleSearch}
+        loading={loading}
+        history={history}
+        onHistoryClick={kw => { setSearch(kw); handleSearch(kw); }}
+        onDeleteHistory={onDeleteHistory}
+        mode={mode}
+        setMode={setMode}
+      />
+      <div className="mt-10 flex justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          {topics.length === 0 && (
+            <div className="col-span-full text-center text-gray-400 text-lg select-none"></div>
+          )}
+          {columns.map((col, colIdx) => (
+            <div key={colIdx} className="flex flex-col gap-8">
+              {col.map((topic, i) => (
+                <TopicCard
+                  key={topic.id}
+                  topic={topic}
+                  onClick={() => onSelectTopic(topic.id)}
+                  animationDelay={`${i * 0.15 + colIdx * 0.05}s`}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SearchBar({ value, onChange, onSearch, loading, history, onHistoryClick, onDeleteHistory, mode, setMode }) {
+  // 首字母大写工具
+  const capitalize = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="flex w-full max-w-2xl">
+        <input
+          className="flex-1 px-5 py-3 rounded-l-2xl border-0 shadow focus:ring-2 focus:ring-pink-400 bg-white/80 backdrop-blur text-lg"
+          placeholder="Reddit 上都在热聊什么？搜 🌐Popular看看"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && onSearch()}
+        />
+        <select
+          value={mode}
+          onChange={e => setMode(e.target.value)}
+          className="px-4 py-3 bg-white/60 backdrop-blur border-0 outline-none text-base font-bold tracking-widest uppercase text-gray-700 shadow focus:ring-2 focus:ring-pink-400 transition-all"
+          style={{ minWidth: 90, borderRadius: 0 }}
+        >
+          <option value="best">BEST</option>
+          <option value="hot">HOT</option>
+          <option value="new">NEW</option>
+        </select>
+        <button
+          className="px-8 py-3 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-r-2xl rounded-l-none font-bold shadow hover:scale-105 transition active:scale-95 focus:ring-4 focus:ring-pink-200"
+          onClick={onSearch}
+          disabled={loading}
+        >搜索</button>
+      </div>
+      {history.length > 0 && (
+        <div className="flex flex-wrap gap-2 mt-2">
+          {history.map(kw => (
+            <span
+              key={kw}
+              className="group relative px-4 py-2 bg-white/70 rounded-full shadow cursor-pointer hover:bg-pink-200 transition flex items-center justify-center"
+              style={{ minWidth: '60px' }}
+            >
+              <span onClick={() => onHistoryClick(kw)} className="mx-auto literature-font">{capitalize(kw)}</span>
+              <button
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 flex items-center justify-center rounded-full bg-gray-200/80 hover:bg-pink-400 hover:text-white text-gray-500 text-xs font-bold transition opacity-0 group-hover:opacity-100"
+                style={{ outline: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+                onClick={e => { e.stopPropagation(); onDeleteHistory(kw); }}
+                title="删除"
+              >×</button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TopicCard({ topic, onClick, animationDelay }) {
+  // 首字母大写工具
+  const capitalize = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+  return (
+    <div
+      className="glass w-80 mx-auto p-8 cursor-pointer hover:scale-105 hover:shadow-2xl transition-all border-2 border-transparent hover:border-pink-300 flex flex-col items-center animate-slideFadeIn"
+      onClick={onClick}
+      style={{ minHeight: 140, animationDelay: animationDelay || '0s' }}
+    >
+      <h3 className="text-2xl font-bold text-gray-800 mb-2 text-center drop-shadow animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+        #<span className={/^[a-zA-Z]/.test(topic.name) ? "literature-font" : ""}>{capitalize(topic.name)}</span>
+      </h3>
+      <p className="text-gray-500 text-center animate-fadeIn literature-font" style={{ animationDelay: '0.4s' }}>{topic.description || '点击查看帖子'}</p>
+    </div>
+  );
+}
+
+// 帖子详情页美化
+function PostListPage({ topicId, onBack, mode }) {
+  const [posts, setPosts] = React.useState([]);
+  const [search, setSearch] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const rtf = typeof Intl !== 'undefined' && Intl.RelativeTimeFormat 
+    ? new Intl.RelativeTimeFormat('zh-CN', { numeric: 'auto' })
+    : null;
+  const formatTimeDisplay = (timestamp) => {
+    if (!timestamp) return '';
+
+    const now = Date.now();
+    const time = typeof timestamp === 'number' && timestamp.toString().length === 10
+      ? timestamp * 1000
+      : new Date(timestamp).getTime();
+
+    const diff = now - time;
+    
+    // 使用缓存的 RelativeTimeFormat 实例
+    if (rtf) {
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+      const months = Math.floor(days / 30);
+      const years = Math.floor(months / 12);
+
+      let relative = '';
+      if (seconds < 60) relative = rtf.format(-seconds, 'second');
+      else if (minutes < 60) relative = rtf.format(-minutes, 'minute');
+      else if (hours < 24) relative = rtf.format(-hours, 'hour');
+      else if (days < 30) relative = rtf.format(-days, 'day');
+      else if (months < 12) relative = rtf.format(-months, 'month');
+      else relative = rtf.format(-years, 'year');
+
+      const date = new Date(time);
+      const absolute = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+
+      return `${relative} · ${absolute}`;
+    } else {
+      // 降级方案：使用简单的时间显示
+      const date = new Date(time);
+      return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    }
+  };
+
+  // 定时刷新
+  React.useEffect(() => {
+    let timer;
+    const fetchPosts = async () => {
+      setLoading(true);
+      try {
+        let url = `/topics/${topicId}/posts?mode=${mode}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        setPosts(data);
+      } catch (e) {
+        alert('获取帖子失败');
+      }
+      setLoading(false);
+    };
+    fetchPosts();
+    timer = setInterval(fetchPosts, 300 * 1000);
+    return () => clearInterval(timer);
+  }, [topicId, search, mode]);
+
+  // 回车搜索
+  const handleKeyDown = e => {
+    if (e.key === 'Enter') setSearch(e.target.value);
+  };
+
+  return (
+    <div className="w-full max-w-3xl mx-auto py-10">
+      <button
+        className="mb-6 flex items-center gap-2 px-5 py-2 bg-cyan-200/70 hover:bg-cyan-300/80 text-cyan-700 font-bold text-lg rounded-full shadow glass transition-all backdrop-blur border border-cyan-300"
+        onClick={onBack}
+        style={{ border: 'none' }}
+      >
+        <svg width="24" height="24" fill="none" stroke="#1de9b6" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="inline-block align-middle"><path d="M15 18l-6-6 6-6"/></svg>
+        <span className="drop-shadow">返回话题墙</span>
+      </button>
+      {/* 模式标签 */}
+      <div className="flex items-center justify-between mb-2">
+        <div></div>
+        <span
+          className={`px-4 py-1 rounded-full text-xs font-bold text-white shadow
+            ${
+              mode === 'best'
+                ? 'bg-pink-400'
+                : mode === 'hot'
+                ? 'bg-yellow-400'
+                : mode === 'new'
+                ? 'bg-blue-400'
+                : 'bg-gray-300'
+            }`}
+          style={{ letterSpacing: '0.15em' }}
+        >
+          {mode.toUpperCase()}
+        </span>
+      </div>
+      <div className="flex mb-8">
+        <input
+          className="flex-1 px-4 py-3 rounded-l-2xl border-0 shadow focus:ring-2 focus:ring-pink-400 bg-white/80 backdrop-blur text-lg"
+          placeholder="精准查帖，从一个词开始"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          onKeyDown={handleKeyDown}
+        />
+        <button
+          className="px-8 py-3 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-r-2xl font-bold shadow hover:scale-105 transition active:scale-95 focus:ring-4 focus:ring-pink-200"
+          onClick={() => setSearch(search)}
+          disabled={loading}
+        >搜索</button>
+      </div>
+      <div className="flex flex-col gap-6">
+        {posts.map((post, i) => (
+          <div
+            key={post.id}
+            className="glass shadow p-6 flex gap-4 animate-slideFadeIn hover:shadow-xl transition-all duration-300"
+            style={{ animationDelay: `${i * 0.15}s` }}
+          >
+            {post.thumbnail && post.thumbnail.startsWith('http') && (
+              <img src={post.thumbnail} alt="缩略图" className="w-32 h-32 object-cover rounded-lg" />
+            )}
+            <div className="flex-1">
+              <h4 className="text-lg font-bold text-gray-800 mb-2">{post.title}</h4>
+              <p className="text-gray-600 mb-2">{post.content?.slice(0, 100)}...</p>
+              <div className="flex items-center justify-between">
+                <a href={post.permalink} target="_blank" rel="noopener noreferrer" className="text-pink-500 hover:underline">原帖链接</a>
+                {post.created_utc && (
+                  <span className="text-sm text-gray-500">
+                    📅 {formatTimeDisplay(post.created_utc)}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById('topic-wall-root')).render(<App />);
+</script>

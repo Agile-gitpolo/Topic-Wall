@@ -1,0 +1,7 @@
+:schedule:
+  fetch_hot_posts_worker:
+    cron: "*/5 * * * *" # 每5分钟
+    class: FetchHotPostsWorker
+  cleanup_worker:
+    cron: "0 0 * * *" # 每天0点
+    class: CleanupWorker
