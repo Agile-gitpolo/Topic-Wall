@@ -57,7 +57,7 @@
      REDDIT_USERNAME=你的Reddit用户名
      USER_AGENT=linux:topic_wall:0.1 (by /u/你的Reddit用户名)
      PROXY_URL=http://你的代理:端口 # 如有需要
-     DATABASE_URL=postgres://user:password@localhost:5432/topic_wall_development
+     DATABASE_URL=postgres://your_db_user:your_db_password@localhost:5432/topic_wall_usage
      REDIS_URL=redis://localhost:6379/1
      ```
 
