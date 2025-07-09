@@ -37,7 +37,7 @@ RUN bundle install && \
     bundle exec bootsnap precompile --gemfile
 
 # 复制 package.json 和 yarn.lock/npm lock 文件，安装前端依赖
-COPY package.json package-lock.json ./   # 如果用 yarn 就改成 yarn.lock
+COPY package.json package-lock.json ./ 
 RUN npm install
 
 # 复制项目代码
