@@ -11,18 +11,18 @@ class RedditFetcher
   # Reddit API 凭证（使用你自己的 client_id 和 secret）
   CLIENT_ID = 'rOQb19D4xL5FsJMwA4iqjQ'
   CLIENT_SECRET = 'Pzuyxh1150VQTEB5HxlA8s24RabsWw'
-  USER_AGENT = 'topic_wall/0.1 by skywalker'
+  USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
  # 加代理 + 获取 Reddit 热门帖子
   def self.fetch_hot_posts(topic_name)
     Rails.logger.info "🔍 [RedditFetcher] 正在抓取 Reddit 热门内容：#{topic_name}"
-    uri = URI("https://www.reddit.com/r/#{topic_name}/hot.json?limit=100")
+    reddit_uri = URI("https://www.reddit.com/r/#{topic_name}/hot.json?limit=100")
 
     proxy_url = ENV['PROXY_URL']
     if proxy_url
-      uri = URI.parse(proxy_url)
-      proxy_addr = uri.host
-      proxy_port = uri.port
+      proxy_uri = URI.parse(proxy_url)
+      proxy_addr = proxy_uri.host
+      proxy_port = proxy_uri.port
       Rails.logger.info "🌐 [RedditFetcher] 使用代理 #{proxy_addr}:#{proxy_port}"
     else
       proxy_addr = nil
@@ -30,10 +30,10 @@ class RedditFetcher
       Rails.logger.info "🌐 [RedditFetcher] 未设置代理"
     end
 
-    http = Net::HTTP::Proxy(proxy_addr, proxy_port).new(uri.host, uri.port)
+    http = Net::HTTP::Proxy(proxy_addr, proxy_port).new(reddit_uri.host, reddit_uri.port)
     http.use_ssl = true
 
-    request = Net::HTTP::Get.new(uri)
+    request = Net::HTTP::Get.new(reddit_uri)
     request['User-Agent'] = USER_AGENT
 
     response = http.request(request)
@@ -124,13 +124,13 @@ class RedditFetcher
 
   def self.fetch_best_posts(topic_name)
     Rails.logger.info "🔍 [RedditFetcher] 正在抓取 Reddit best 内容：#{topic_name}"
-    uri = URI("https://www.reddit.com/r/#{topic_name}/best.json?limit=100")
+    reddit_uri = URI("https://www.reddit.com/r/#{topic_name}/best.json?limit=100")
 
     proxy_url = ENV['PROXY_URL']
     if proxy_url
-      uri = URI.parse(proxy_url)
-      proxy_addr = uri.host
-      proxy_port = uri.port
+      proxy_uri = URI.parse(proxy_url)
+      proxy_addr = proxy_uri.host
+      proxy_port = proxy_uri.port
       Rails.logger.info "🌐 [RedditFetcher] 使用代理 #{proxy_addr}:#{proxy_port}"
     else
       proxy_addr = nil
@@ -138,10 +138,10 @@ class RedditFetcher
       Rails.logger.info "🌐 [RedditFetcher] 未设置代理"
     end
 
-    http = Net::HTTP::Proxy(proxy_addr, proxy_port).new(uri.host, uri.port)
+    http = Net::HTTP::Proxy(proxy_addr, proxy_port).new(reddit_uri.host, reddit_uri.port)
     http.use_ssl = true
 
-    request = Net::HTTP::Get.new(uri)
+    request = Net::HTTP::Get.new(reddit_uri)
     request['User-Agent'] = USER_AGENT
 
     response = http.request(request)
@@ -214,13 +214,13 @@ class RedditFetcher
 
   def self.fetch_new_posts(topic_name)
     Rails.logger.info "🔍 [RedditFetcher] 正在抓取 Reddit new 内容：#{topic_name}"
-    uri = URI("https://www.reddit.com/r/#{topic_name}/new.json?limit=100")
+    reddit_uri = URI("https://www.reddit.com/r/#{topic_name}/new.json?limit=100")
 
     proxy_url = ENV['PROXY_URL']
     if proxy_url
-      uri = URI.parse(proxy_url)
-      proxy_addr = uri.host
-      proxy_port = uri.port
+      proxy_uri = URI.parse(proxy_url)
+      proxy_addr = proxy_uri.host
+      proxy_port = proxy_uri.port
       Rails.logger.info "🌐 [RedditFetcher] 使用代理 #{proxy_addr}:#{proxy_port}"
     else
       proxy_addr = nil
@@ -228,10 +228,10 @@ class RedditFetcher
       Rails.logger.info "🌐 [RedditFetcher] 未设置代理"
     end
 
-    http = Net::HTTP::Proxy(proxy_addr, proxy_port).new(uri.host, uri.port)
+    http = Net::HTTP::Proxy(proxy_addr, proxy_port).new(reddit_uri.host, reddit_uri.port)
     http.use_ssl = true
 
-    request = Net::HTTP::Get.new(uri)
+    request = Net::HTTP::Get.new(reddit_uri)
     request['User-Agent'] = USER_AGENT
 
     response = http.request(request)

@@ -8,7 +8,7 @@
 /.bundle
 
 # Ignore all environment files.
-/.env*
+# /.env*
 
 /Project Technical Architecture and Functional Process.md
 /QUICK_START.md
