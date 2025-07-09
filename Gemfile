@@ -40,7 +40,6 @@ gem 'concurrent-ruby'
 
 gem 'redditkit', '~> 1.0.2'
 
-gem "vite_rails"
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
