@@ -35,8 +35,6 @@ gem 'redis'
 gem 'concurrent-ruby'
 
 
-# gem 'sidekiq'
-# gem 'sidekiq-scheduler'
 
 gem 'redditkit', '~> 1.0.2'
 
