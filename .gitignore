@@ -4,69 +4,54 @@
 # belong in git's global ignore instead:
 # `$XDG_CONFIG_HOME/git/ignore` or `~/.config/git/ignore`
 
-# Ignore bundler config.
+# Ruby/Bundler
 /.bundle
-
-# Ignore all environment files.
-/.env*
-
-/Project Technical Architecture and Functional Process.md
-/QUICK_START.md
-
-# Ignore all logfiles and tempfiles.
-/log/*
-/tmp/*
-!/log/.keep
-!/tmp/.keep
-
-# Ignore pidfiles, but keep the directory.
-/tmp/pids/*
-!/tmp/pids/
-!/tmp/pids/.keep
-
-# Ignore storage (uploaded files in development and any SQLite databases).
-/storage/*
-!/storage/.keep
-/tmp/storage/*
-!/tmp/storage/
-!/tmp/storage/.keep
-
-/public/assets
-
-# Ignore master key for decrypting credentials and more.
-/config/master.key
-
-# Vite Ruby
-/public/vite*
-node_modules
-# Vite uses dotenv and suggests to ignore local-only env files. See
-# https://vitejs.dev/guide/env-and-mode.html#env-files
-*.local
-
-# 环境变量
-.env
-
-# Rails credentials
-/config/master.key
-
-# SQLite
-/db/*.sqlite3
-/db/*.sqlite3-journal
-
-# 日志和临时文件
-/log/*
-/tmp/*
-/storage/*
-!/log/.keep
-!/tmp/.keep
-!/storage/.keep
-
-# 依赖包
-/node_modules/
-/.bundle/
 /vendor/bundle/
 
-# 自定义的敏感脚本
+# Rails
+/log/*
+/tmp/*
+!/log/.keep
+!/tmp/.keep
+/storage/*
+!/storage/.keep
+/db/*.sqlite3
+/db/*.sqlite3-journal
+/config/master.key
+.env*
+
+# Node/Vite/前端相关（已用CDN可全部忽略）
+/node_modules/
+/vite-project/
+vite.config.*
+tailwind.config.*
+tsconfig.json
+postcss.config.*
+package.json
+package-lock.json
+yarn.lock
+
+# 编辑器/IDE
+*.swp
+*.swo
+*.idea/
+*.vscode/
+.cursorignore
+
+# 业务脚本/调试
 /exit
 /t.all.each { |p| puts "#{p.id}: #{p.title} (topic_id: #{p.topic_id})" }
+/script/
+
+# GitHub/CI
+.github/
+
+# 其他
+.DS_Store
+*.bak
+*.old
+
+# 业务文档（如不想上传）
+/Project Technical Architecture and Functional Process.md
+/QUICK_START.md
 
