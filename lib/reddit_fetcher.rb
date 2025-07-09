@@ -18,9 +18,17 @@ class RedditFetcher
     Rails.logger.info "🔍 [RedditFetcher] 正在抓取 Reddit 热门内容：#{topic_name}"
     uri = URI("https://www.reddit.com/r/#{topic_name}/hot.json?limit=100")
 
-    proxy_addr = '172.19.64.1'
-    proxy_port = 7897
-    Rails.logger.info "🌐 [RedditFetcher] 使用代理 #{proxy_addr}:#{proxy_port}"
+    proxy_url = ENV['PROXY_URL']
+    if proxy_url
+      uri = URI.parse(proxy_url)
+      proxy_addr = uri.host
+      proxy_port = uri.port
+      Rails.logger.info "🌐 [RedditFetcher] 使用代理 #{proxy_addr}:#{proxy_port}"
+    else
+      proxy_addr = nil
+      proxy_port = nil
+      Rails.logger.info "🌐 [RedditFetcher] 未设置代理"
+    end
 
     http = Net::HTTP::Proxy(proxy_addr, proxy_port).new(uri.host, uri.port)
     http.use_ssl = true
@@ -118,9 +126,17 @@ class RedditFetcher
     Rails.logger.info "🔍 [RedditFetcher] 正在抓取 Reddit best 内容：#{topic_name}"
     uri = URI("https://www.reddit.com/r/#{topic_name}/best.json?limit=100")
 
-    proxy_addr = '172.19.64.1'
-    proxy_port = 7897
-    Rails.logger.info "🌐 [RedditFetcher] 使用代理 #{proxy_addr}:#{proxy_port}"
+    proxy_url = ENV['PROXY_URL']
+    if proxy_url
+      uri = URI.parse(proxy_url)
+      proxy_addr = uri.host
+      proxy_port = uri.port
+      Rails.logger.info "🌐 [RedditFetcher] 使用代理 #{proxy_addr}:#{proxy_port}"
+    else
+      proxy_addr = nil
+      proxy_port = nil
+      Rails.logger.info "🌐 [RedditFetcher] 未设置代理"
+    end
 
     http = Net::HTTP::Proxy(proxy_addr, proxy_port).new(uri.host, uri.port)
     http.use_ssl = true
@@ -200,9 +216,17 @@ class RedditFetcher
     Rails.logger.info "🔍 [RedditFetcher] 正在抓取 Reddit new 内容：#{topic_name}"
     uri = URI("https://www.reddit.com/r/#{topic_name}/new.json?limit=100")
 
-    proxy_addr = '172.19.64.1'
-    proxy_port = 7897
-    Rails.logger.info "🌐 [RedditFetcher] 使用代理 #{proxy_addr}:#{proxy_port}"
+    proxy_url = ENV['PROXY_URL']
+    if proxy_url
+      uri = URI.parse(proxy_url)
+      proxy_addr = uri.host
+      proxy_port = uri.port
+      Rails.logger.info "🌐 [RedditFetcher] 使用代理 #{proxy_addr}:#{proxy_port}"
+    else
+      proxy_addr = nil
+      proxy_port = nil
+      Rails.logger.info "🌐 [RedditFetcher] 未设置代理"
+    end
 
     http = Net::HTTP::Proxy(proxy_addr, proxy_port).new(uri.host, uri.port)
     http.use_ssl = true
