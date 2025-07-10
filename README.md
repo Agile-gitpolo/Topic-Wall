@@ -127,7 +127,7 @@
 - **安全**：请勿上传 `.env`、`config/master.key`、数据库文件等敏感内容
 - **版权声明**：本项目所有代码受版权保护，禁止未授权复制、剽窃、商用
 - **贡献**：欢迎 issue/PR，建议先联系作者沟通
-- **文档**：详见 `Project Technical Architecture and Functional Process.md`
+- **文档**：详见 ` Architecture and Functional Process.md`
 
 ---
 
