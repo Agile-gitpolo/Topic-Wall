@@ -115,7 +115,7 @@
 
 ## 📦 部署说明（Deployment）
 
-- 推荐平台：Railway、Render、Heroku、Kamal、Docker
+- 使用：Railway、Render、Heroku、Kamal、Docker
 - **环境变量**通过平台后台配置，不上传 `.env` 到仓库
 - 生产环境建议用 Nginx/SSL 反向代理
 - 详见 `Dockerfile`、`Procfile.dev`、`config/deploy.yml`
